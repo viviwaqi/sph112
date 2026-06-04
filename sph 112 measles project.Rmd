@@ -13,7 +13,7 @@ library(janitor)
 ## Data Import
 ```{r}
 measles_case_records <- read_xlsx("Utopia_Measles_Dataset.xlsx", "Measles_Case_Records")
-annual_trend_2010_2015 <- read_xlsx("Utopia_Measles_Dataset.xlsx", "Annual_Trend_2010_2025")
+annual_trend_2010_2025 <- read_xlsx("Utopia_Measles_Dataset.xlsx", "Annual_Trend_2010_2025")
 outbreak_detail <- read_xlsx("Utopia_Measles_Dataset.xlsx", "Outbreak_Detail")
 sspe_registry <- read_xlsx("Utopia_Measles_Dataset.xlsx", "SSPE_Registry")
 vaccination_coverage <- read_xlsx("Utopia_Measles_Dataset.xlsx", "Vaccination_Coverage")
@@ -22,12 +22,78 @@ county_geographic_summary <- read_xlsx("Utopia_Measles_Dataset.xlsx", "County_Ge
 given_summary_statistics <- read_xlsx("Utopia_Measles_Dataset.xlsx", "Summary_Statistics")
 ```
 
+## general visualizations
+
+```{r}
+annual_trend_2010_2025<- annual_trend_2010_2025 |> 
+  mutate(Outbreak_Case_percentage = Outbreak_Linked_Cases / Total_Cases * 100)
+```
+#Total Cases line
+```{r}
+annual_trend_2010_2025 |> 
+  ggplot(aes(x = Year, y = Total_Cases, label = Total_Cases))+
+  geom_line(color = "black", linewidth = 2, lineend = "round")+
+  geom_label(fill = "white", color = "blue",
+             nudge_y = 5)+
+  geom_point(size = 4)+
+  scale_x_continuous(breaks = seq(min(annual_trend_2010_2025$Year), max(annual_trend_2010_2025$Year), by = 1),
+                     minor_breaks = NULL)+
+  scale_y_continuous(breaks = seq(0, max(90), by = 10),
+                     minor_breaks = NULL)+
+  labs(title = "Total Cases Per Year in Utopia",
+       y = "Total Cases")
+
+  #ggsave("total_cases_line.png")
+```
+
+#Total cases w/ outbreaks highlighted
+```{r}
+annual_trend_2010_2025 |> 
+  ggplot(aes(x = Year, y = Total_Cases, color = Outbreak_Year, label = Outbreak_Linked_Cases))+
+  geom_line(color = "black", linewidth = 2, lineend = "round")+
+  geom_label(aes(label = ifelse(Outbreak_Linked_Cases == 0 & Outbreak_Year == "No", NA, paste0(Outbreak_Linked_Cases, " Outbreak \nLinked Cases"))),
+             nudge_y = 6)+
+  geom_point(size = 4)+
+  scale_color_manual(values = c("Yes" = "darkorange3"))+
+  scale_x_continuous(breaks = seq(min(annual_trend_2010_2025$Year), max(annual_trend_2010_2025$Year), by = 1),
+                     minor_breaks = NULL)+
+    scale_y_continuous(breaks = seq(0, max(90), by = 10),
+                     minor_breaks = NULL)+
+  labs(title = "Outbreak Linked Cases Per Year in Utopia",
+       y = "Total Cases")+
+  theme(legend.position = "none")
+
+  #ggsave("outbreak_linked_cases_line.png")
+```
+
+
 ## Vaccine opinion by county
 ```{r}
 county_geographic_summary <- clean_names(county_geographic_summary)
 county_geographic_summary
 
 ```
+```{r}
+county_geographic_summary |> 
+  mutate(pct_hospitalized = hospitalizations / total_cases_2010_2025) |> 
+  mutate(hospitalizations_per_100k = hospitalizations / estimated_population * 100000)
+```
+
+# percent unvax vs complications by county
+```{r}
+county_geographic_summary |>
+  pivot_longer(cols = c(pct_with_complications, pct_unvaccinated_cases),
+               names_to = "metric",
+               values_to = "Percentage") |>
+  ggplot(aes(x = reorder(county, Percentage, decreasing = F), y = Percentage, fill = metric)) +
+  geom_col(position = "dodge")+
+  geom_text(aes(label = paste0(round(Percentage, 1), "%")), position = position_dodge(width = 0.9), xjust = 2)+
+  scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10))+
+  scale_fill_manual(values = c("orchid3", "olivedrab3"))+
+  coord_flip()+
+  labs(x = "County", y = "Percentage of Cases")
+```
+
 
 ```{r}
 county_geographic_summary |> 
