@@ -76,6 +76,12 @@ county_geographic_summary
 ```
 ```{r}
 county_geographic_summary |> 
+  select(county, estimated_population) |> 
+  arrange(desc(estimated_population))
+```
+
+```{r}
+county_geographic_summary |> 
   mutate(pct_hospitalized = hospitalizations / total_cases_2010_2025) |> 
   mutate(hospitalizations_per_100k = hospitalizations / estimated_population * 100000)
 ```
@@ -169,14 +175,16 @@ measles_case_records |>
 ```{r}
 measles_case_records |> 
   count(Insurance_Type) |> 
-  mutate(percentage = n / sum(n) *100) |> 
-  arrange(desc(percentage))
+  mutate(percentage = round(n / sum(n) *100, 1)) |> 
+  arrange(desc(percentage)) |> 
+  gt()
 ```
 
 ```{r}
 measles_case_records |> 
   count(SES_Category, sort = T) |> 
-  mutate(percentage = n / sum(n) *100)
+  mutate(percentage = round(n / sum(n) *100, 1)) |> 
+  gt()
 ```
 ```{r}
 measles_case_records |> 
@@ -249,11 +257,13 @@ vax_hesitant_opinion_survey |>
 ```
 ```{r}
 vax_hesitant_opinion_survey |> 
-  count(Education_Level, sort = T) 
+  count(Education_Level, sort = T) |> 
+  mutate(percentage = n / sum(n) *100)
 ```
 ```{r}
 vax_hesitant_opinion_survey |> 
-  count(Info_Source_Primary, sort = T)
+  count(Info_Source_Primary, sort = T) |> 
+  mutate(percentage = n / sum(n) *100)
 ```
 ```{r}
 vax_hesitant_opinion_survey |> 
@@ -273,11 +283,13 @@ pro_vax_opinion_survey |>
 ```
 ```{r}
 pro_vax_opinion_survey |> 
-  count(Education_Level, sort = T) 
+  count(Education_Level, sort = T) |> 
+  mutate(percentage = n / sum(n) *100)
 ```
 ```{r}
 pro_vax_opinion_survey |> 
-  count(Info_Source_Primary, sort = T)
+  count(Info_Source_Primary, sort = T) |> 
+  mutate(percentage = n / sum(n) *100)
 ```
 ```{r}
 pro_vax_opinion_survey |> 
