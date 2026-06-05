@@ -9,6 +9,7 @@ library(tidyverse)
 library(readxl)
 library(ggplot2)
 library(janitor)
+library(gt)
 ```
 ## Data Import
 ```{r}
@@ -128,7 +129,15 @@ unvax_individual_demographics
 ```{r}
 unvax_individual_demographics |> 
   count(Reason_if_Unvaccinated, sort = T) |> 
-  mutate(percentage = n / sum(n) *100)
+  mutate(percentage = round((n / sum(n)) *100, 1)) |> 
+  gt() |> 
+  tab_header(title = "Reason Given for Unvaccination",
+             subtitle = "Among Surveyed Unvaccinated Utopia Residents") |> 
+  cols_label(Reason_if_Unvaccinated = "Reason",
+             n = "Number of<br>Respondents",
+             percentage = "% of<br>Respondents",
+             .fn = md) 
+  #gtsave("reason_for_unvax_table.png")
 ```
 
 ```{r}
